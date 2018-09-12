@@ -1,0 +1,17 @@
+framework module ZoomAuthenticationHybrid {
+    header "ZoomAuthentication.h"
+    
+    explicit module Phoenix {
+        private header "PhoenixIOS.h"
+    }
+}
+
+module ZoomCommonCrypto [system] {
+    header "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include/CommonCrypto/CommonCrypto.h"
+    export *
+}
+
+module ZoomAuthenticationHybrid.Swift {
+    header "ZoomAuthenticationHybrid-Swift.h"
+    requires objc
+}

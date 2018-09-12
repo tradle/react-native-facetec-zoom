@@ -1,0 +1,14 @@
+{
+  "countOfZoomSessionsPerformed": 1,
+  "sessionId": "45D5D648-3B14-46B1-86B0-55A91AB9E7DD",
+  "faceMetrics": {
+    "livenessResult": "Alive",
+    "livenessScore": 86.69999694824219,
+    "auditTrail": [
+      "...base64 image..."
+    ],
+    "externalImageSetVerificationResult": {
+      "description": "Could Not Determine Match"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+// This xcode configuration is shared by each of the sample apps.
+
+// The below settings are the minimal changes from a default xcode project configuration needed
+// to embed the ZoomAuthentication.framework into an app target.
+
+// An Objective-C Application needs this parameter set to YES in order to use swift frameworks
+// This value has no affect on swift applications
+EMBEDDED_CONTENT_CONTAINS_SWIFT = YES
+
+// If the framework is not copied into the project SRCROOT then the framework search path needs
+// to be set appropriately to discover the path to the framework.  In this package, the
+// framework lives in the parent directory of the apps.
+// FRAMEWORK_SEARCH_PATHS is set appropriately to allow xcode to discover the ZoomAuthentication.framework
+FRAMEWORK_SEARCH_PATHS = $(SRCROOT)/../ $(inherited)
