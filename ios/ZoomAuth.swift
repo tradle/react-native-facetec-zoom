@@ -12,17 +12,9 @@ import ZoomAuthenticationHybrid
 @objc(ZoomAuth)
 class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
 
-  var APP_TOKEN: String = ""
-  var APP_STORE: String = ""
-  var APP_USER: String = ""
-  var APP_SECRET: String = ""
   var verifyResolver: RCTPromiseResolveBlock? = nil
   var verifyRejecter: RCTPromiseRejectBlock? = nil
   var initialized = false
-
-//    func checkAuth() -> Bool {
-//        return ZoomSDK.isUserEnrolled(userID: APP_USER)
-//    }
 
   // React Method
   @objc func verify(_ resolve: @escaping RCTPromiseResolveBlock,
@@ -55,16 +47,43 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
     }
   }
 
+  // surely there's an easier way...
+  func getVerificationResultStatus(result: ZoomVerificationResult) -> String {
+    switch(result.status) {
+      case .FailedBecauseAppTokenNotValid:
+        return "FailedBecauseAppTokenNotValid"
+      case .FailedBecauseCameraPermissionDeniedByAdministrator:
+        return "FailedBecauseCameraPermissionDeniedByAdministrator"
+      case .UserProcessedSuccessfully:
+        return "UserProcessedSuccessfully"
+      case .UserNotProcessed:
+        return "UserNotProcessed"
+      case .FailedBecauseUserCancelled:
+        return "FailedBecauseUserCancelled"
+      case .FailedBecauseCameraPermissionDeniedByUser:
+        return "FailedBecauseCameraPermissionDeniedByUser"
+      case .FailedBecauseOfOSContextSwitch:
+        return "FailedBecauseOfOSContextSwitch"
+      case .FailedBecauseOfTimeout:
+        return "FailedBecauseOfTimeout"
+      case .FailedBecauseOfLowMemory:
+        return "FailedBecauseOfLowMemory"
+      case .FailedBecauseOfDiskWriteError:
+        return "FailedBecauseOfDiskWriteError"
+      case .FailedBecauseNoConnectionInDevMode:
+        return "FailedBecauseNoConnectionInDevMode"
+      case .FailedBecauseOfflineSessionsExceeded:
+        return "FailedBecauseOfflineSessionsExceeded"
+      case .FailedBecauseEncryptionKeyInvalid:
+        return "FailedBecauseEncryptionKeyInvalid"
+    }
+  }
+
   func onZoomVerificationResult(result: ZoomVerificationResult) {
     print("\(result.status)")
 
-    if result.status == .FailedBecauseEncryptionKeyInvalid {
-      let errorMsg = "you probably did not set a public key before attempting to retrieve a facemap. Retrieving facemaps requires that you generate a public/private key pair per the instructions at https://dev.zoomlogin.com/zoomsdk/#/hybrid-guide"
-      let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
-      self.verifyRejecter!("EncryptionKeyInvalid", errorMsg, err)
-    }
     // CASE: user performed a ZoOm and passed the liveness check
-    else if result.status == .UserProcessedSuccessfully {
+    if result.status == .UserProcessedSuccessfully {
       let externalImageSetVerificationResult:[String:Any] = [
         "description": result.faceMetrics?.externalImageSetVerificationResult.description ?? ""
       ]
@@ -77,6 +96,7 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
       ]
 
       let resultJson:[String:Any] = [
+        "status": getVerificationResultStatus(result: result),
         "countOfZoomSessionsPerformed": result.countOfZoomSessionsPerformed,
         "faceMetrics": faceMetrics,
         "sessionId": result.sessionId
@@ -87,21 +107,15 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
     }
     else {
       // handle other error
+      self.verifyResolver!([
+        "status": getVerificationResultStatus(result: result)
+      ])
     }
 
     self.verifyResolver = nil
     self.verifyRejecter = nil
-//    verifyResolver([
-//      status: result.status,
-//      countOfZoomSessions: result.countOfZoomSessionsPerformed
-//    ])
 
-    // EXAMPLE: retrieve audit trail and facemap
-//    if let auditTrail = result.faceMetrics?.auditTrail {
-//      print("Audit trail image count: (auditTrail.count)")
-//      auditTrailImages = auditTrail
-//    }
-//
+//    EXAMPLE: retrieve facemap
 //    if let zoomFacemap = result.faceMetrics?.zoomFacemap {
 //      // handle ZoOm Facemap
 //    }
@@ -162,13 +176,20 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
           self.initialized = true
           let message = "AppToken validated successfully"
           print(message)
-          resolve(message)
+          resolve([
+            "success": true
+          ])
         }
         else {
-          let errorMsg = "AppToken did not validate.  If Zoom ViewController's are launched, user will see an app token error state"
-          print(errorMsg)
-          let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
-          reject("initialize", errorMsg, err)
+          resolve([
+            "success": false,
+            "status": ZoomSDK.getStatus()
+          ])
+
+//          let errorMsg = "AppToken did not validate.  If Zoom ViewController's are launched, user will see an app token error state"
+//          print(errorMsg)
+//          let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
+//          reject("initialize", errorMsg, err)
         }
       }
     )
