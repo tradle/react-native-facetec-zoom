@@ -1,0 +1,69 @@
+
+buildscript {
+    repositories {
+//        flatDir {
+//            dirs './libs/'
+//            dirs "$rootDir/../node_modules/react-native-facetec-zoom/android/libs"
+//        }
+
+        jcenter()
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
+        google()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.1.4'
+    }
+}
+
+apply plugin: 'com.android.library'
+
+
+def DEFAULT_COMPILE_SDK_VERSION             = 26
+def DEFAULT_BUILD_TOOLS_VERSION             = "28.0.2"
+def DEFAULT_TARGET_SDK_VERSION              = 26
+def DEFAULT_SUPPORT_LIBRARY_VERSION         = "27.1.1"
+
+android {
+    compileSdkVersion rootProject.hasProperty('compileSdkVersion') ? rootProject.compileSdkVersion : DEFAULT_COMPILE_SDK_VERSION
+    buildToolsVersion rootProject.hasProperty('buildToolsVersion') ? rootProject.buildToolsVersion : DEFAULT_BUILD_TOOLS_VERSION
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion rootProject.hasProperty('targetSdkVersion') ? rootProject.targetSdkVersion : DEFAULT_TARGET_SDK_VERSION
+        versionCode 1
+        versionName "1.0"
+    }
+    lintOptions {
+        abortOnError false
+    }
+
+    packagingOptions {
+       exclude 'META-INF/NOTICE'
+       exclude 'META-INF/LICENSE'
+   }
+}
+
+repositories {
+    flatDir {
+        dirs './libs/'
+        dirs "$rootDir/../node_modules/react-native-facetec-zoom/android/libs"
+    }
+
+//    flatDir { dirs "$rootDir/../node_modules/react-native-facetec-zoom/android/libs" }
+    mavenCentral()
+    google()
+}
+
+dependencies {
+    def supportLibVersion = rootProject.hasProperty('supportLibVersion')  ? rootProject.supportLibVersion : DEFAULT_SUPPORT_LIBRARY_VERSION
+//    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "com.facebook.react:react-native:+"
+    implementation "com.android.support:appcompat-v7:$supportLibVersion"
+//    implementation 'com.facetec:zoom-authentication-hybrid:6.8.0@aar'
+    implementation(name:'zoom-authentication-hybrid', ext:'aar')
+}
+
