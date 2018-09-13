@@ -6,10 +6,9 @@ Pod::Spec.new do |s|
   s.version       = package["version"]
   s.summary       = package['description']
   s.requires_arc  = true
-  s.author        = { 'Willian Ribeiro Angelo' => 'agfoccus@gmail.com' }
   s.license       = package["license"]
   s.homepage      = package["homepage"]
-  s.source        = { :git => 'https://github.com/movibe/react-native-zoom-sdk.git' }
+  s.source        = { :git => 'https://github.com/tradle/react-native-facetec-zoom.git' }
   s.platform      = :ios, '7.0'
   s.dependency      'React'
 

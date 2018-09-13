@@ -15,7 +15,7 @@
 RCT_EXTERN_METHOD(getVersion:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(initialize:(NSString*) appToken
+RCT_EXTERN_METHOD(initialize:(NSDictionary*) options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 

@@ -55,14 +55,6 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
     }
   }
 
-  @objc func intializeZoom() {
-
-    // since we are using ZoOm Hybrid authentication, configure ZoOm to not show the success screen as we will not know the success or fail until we receive response from server
-    let currentCustomization: ZoomCustomization = ZoomCustomization()
-    currentCustomization.showSuccessScreen = false
-    ZoomSDK.setCustomization(interfaceCustomization: currentCustomization)
-  }
-
   func onZoomVerificationResult(result: ZoomVerificationResult) {
     print("\(result.status)")
 
@@ -138,13 +130,30 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
   }
 
   // React Method
-  @objc func initialize(_ appToken: String,
+  @objc func initialize(_ options: Dictionary<String, Any>,
                         resolver resolve: @escaping RCTPromiseResolveBlock,
                         rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
 
+    if options["appToken"] == nil {
+      let errorMsg = "expected appToken option"
+      let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
+      reject("ExpectedToken", errorMsg, err)
+      return
+    }
+
     ZoomSDK.auditTrailType = .Height640
+    let currentCustomization: ZoomCustomization = ZoomCustomization()
+    currentCustomization.showZoomIntro = options["showZoomIntro"] as! Bool
+    currentCustomization.showPreEnrollmentScreen = options["showPreEnrollmentScreen"] as! Bool
+    currentCustomization.showUserLockedScreen = options["showUserLockedScreen"] as! Bool
+    currentCustomization.showSuccessScreen = options["showSuccessScreen"] as! Bool
+    currentCustomization.showFailureScreen = options["showFailureScreen"] as! Bool
+
+//    currentCustomization.brandingLogo
+    ZoomSDK.setCustomization(interfaceCustomization: currentCustomization)
+
     ZoomSDK.initialize(
-      appToken: appToken,
+      appToken: options["appToken"] as! String,
       completion: { (appTokenValidated: Bool) -> Void in
         //
         // We want to ensure that App Token is valid before enabling verification

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		73E3E80C2149BDB30093B180 /* ZoomAuthenticationHybrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E3E80B2149BDB30093B180 /* ZoomAuthenticationHybrid.framework */; };
+		73E3E824214A03F00093B180 /* ZoomAuthenticationHybrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E3E823214A03F00093B180 /* ZoomAuthenticationHybrid.framework */; };
 		85B6B0F92018C5EA00A70FDA /* ZoomAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85B6B0F82018C5EA00A70FDA /* ZoomAuth.swift */; };
 		B3E7B58A1CC2AC0600A0062D /* RNReactNativeZoomSdk.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* RNReactNativeZoomSdk.m */; };
 /* End PBXBuildFile section */
@@ -26,7 +26,7 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRNReactNativeZoomSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNReactNativeZoomSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		73E3E80B2149BDB30093B180 /* ZoomAuthenticationHybrid.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ZoomAuthenticationHybrid.framework; sourceTree = "<group>"; };
+		73E3E823214A03F00093B180 /* ZoomAuthenticationHybrid.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ZoomAuthenticationHybrid.framework; sourceTree = "<group>"; };
 		85B6B0F72018C5E900A70FDA /* RNReactNativeZoomSdk-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNReactNativeZoomSdk-Bridging-Header.h"; sourceTree = "<group>"; };
 		85B6B0F82018C5EA00A70FDA /* ZoomAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomAuth.swift; sourceTree = "<group>"; };
 		85B6B0FD2018C6A300A70FDA /* ZoomConfigurationForTestApplication.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ZoomConfigurationForTestApplication.xcconfig; sourceTree = "<group>"; };
@@ -39,7 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				73E3E80C2149BDB30093B180 /* ZoomAuthenticationHybrid.framework in Frameworks */,
+				73E3E824214A03F00093B180 /* ZoomAuthenticationHybrid.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,7 +70,7 @@
 		8581B7FA2020F24900985D29 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				73E3E80B2149BDB30093B180 /* ZoomAuthenticationHybrid.framework */,
+				73E3E823214A03F00093B180 /* ZoomAuthenticationHybrid.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -162,6 +162,10 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/../../../ios",
+					"$(SRCROOT)/../../../iOS",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -206,6 +210,10 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/../../../ios",
+					"$(SRCROOT)/../../../iOS",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
