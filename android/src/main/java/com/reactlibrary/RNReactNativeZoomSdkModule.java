@@ -45,8 +45,6 @@ import java.util.ArrayList;
 public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
 
   private static final String TAG = "RNReactNativeZoomSdk";
-  private static final String VERIFY_PENDING = "VerifyPending";
-  private static final String NOT_INITIALIZED = "NotInitialized";
   private final ReactApplicationContext reactContext;
   private Promise verificationPromise;
   private boolean initialized;
@@ -155,16 +153,6 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void verify(ReadableMap opts, final Promise promise) {
-    if (!this.initialized) {
-      promise.reject(NOT_INITIALIZED);
-      return;
-    }
-
-    if (this.verificationPromise != null) {
-      promise.reject(VERIFY_PENDING);
-      return;
-    }
-
     verificationPromise = promise;
     Activity activity = getCurrentActivity();
     Intent verificationIntent = new Intent(activity.getBaseContext(), ZoomVerificationActivity.class);

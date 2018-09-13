@@ -20,20 +20,6 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
   @objc func verify(_ options: Dictionary<String, Any>, // options not used at the moment
                       resolve: @escaping RCTPromiseResolveBlock,
                       rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
-    if self.verifyResolver != nil {
-      let errorMsg = "one verify() at a time"
-      let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
-      reject("VerifyPending", errorMsg, err)
-      return
-    }
-
-    if !self.initialized {
-      let errorMsg = "initialize() before verify()"
-      let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
-      reject("NotInitialized", errorMsg, err)
-      return
-    }
-
     self.verifyResolver = resolve
     self.verifyRejecter = reject
     DispatchQueue.main.async {
@@ -162,13 +148,6 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
   @objc func initialize(_ options: Dictionary<String, Any>,
                         resolver resolve: @escaping RCTPromiseResolveBlock,
                         rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
-
-    if options["appToken"] == nil {
-      let errorMsg = "expected appToken option"
-      let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
-      reject("ExpectedToken", errorMsg, err)
-      return
-    }
 
     ZoomSDK.auditTrailType = .Height640
     let currentCustomization: ZoomCustomization = ZoomCustomization()

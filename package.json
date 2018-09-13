@@ -4,9 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint --quiet --ignore-path .gitignore .",
+    "precommit": "npm run lint"
   },
   "keywords": [],
   "author": "mvayngrib",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^5.5.0",
+    "husky": "^0.14.3"
+  }
 }

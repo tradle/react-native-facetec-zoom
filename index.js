@@ -1,45 +1,53 @@
 import { NativeModules } from 'react-native'
+import { SDKStatus, VerificationStatus } from './constants'
+import { customization } from './defaults'
+import { VerificationPendingError, NotInitializedError } from './errors'
 
-const { RNReactNativeZoomSdk } = NativeModules
-
-const ZoomAuth = {}
-const customizationDefaults = {
-  showZoomIntro: false,
-  showPreEnrollmentScreen: false,
-  showUserLockedScreen: false,
-  showSuccessScreen: false,
-  showFailureScreen: false,
-  // mainBackgroundColors: [UIColor]
-  // mainForegroundColor: UIColor
-  // buttonTextNormalColor: UIColor
-  // buttonBackgroundNormalColor: UIColor
-  // buttonTextHighlightColor: UIColor
-  // buttonBackgroundHighlightColor: UIColor
-  // resultsScreenBackgroundColor: [UIColor]
-  // resultsScreenForegroundColor: UIColor
-  // progressBarColor: CAGradientLayer
-  // progressTextColor: UIColor
-  // progressSpinnerColor1: UIColor
-  // progressSpinnerColor2: UIColor
-  // tabBackgroundColor: UIColor
-  // tabBackgroundSelectedColor: UIColor
-  // tabTextColor: UIColor
-  // tabTextSelectedColor: UIColor
-  // tabTextSuccessColor: UIColor
-  // tabBackgroundSuccessColor: UIColor
-  // brandingLogo: UIImage?
-  // cancelButtonImage: UIImage?
-  // cancelButtonLocation: ZoomAuthenticationHybrid.CancelButtonLocation
-  // zoomInstructionsImages: ZoomAuthenticationHybrid.ZoomInstructions
+export const status = {
+  sdk: SDKStatus,
+  verification: VerificationStatus,
 }
 
-ZoomAuth.getVersion = () => RNReactNativeZoomSdk.getVersion()
+const wrapNative = native => {
+  let initialized
+  let verifying
 
-ZoomAuth.initialize = opts => RNReactNativeZoomSdk.initialize({
-  ...customizationDefaults,
-  ...opts,
-})
+  const initialize = async opts => {
+    initialized = false
 
-ZoomAuth.verify = (opts={}) => RNReactNativeZoomSdk.verify(opts)
+    const result = await native.initialize({
+      ...customization,
+      ...opts,
+    })
 
-export default ZoomAuth
+    initialized = result.success
+    return result
+  }
+
+  const getVersion = () => native.getVersion()
+  const verify = async (opts={}) => {
+    if (!initialized) {
+      throw new NotInitializedError('initialize me first!')
+    }
+
+    if (verifying) {
+      throw new VerificationPendingError('only one verification can be done at a time')
+    }
+
+    try {
+      return await native.verify({
+        ...customization,
+        ...opts,
+      })
+    } finally {
+      verifying = false
+    }
+  }
+
+  return {
+    initialize,
+  }
+}
+
+const zoomAuth = wrapNative(NativeModules.RNReactNativeZoomSdk)
+export default zoomAuth

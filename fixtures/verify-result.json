@@ -5,10 +5,10 @@
     "livenessResult": "Alive",
     "livenessScore": 86.69999694824219,
     "auditTrail": [
-      "...base64 image..."
+      "..base64 image 1..",
+      "..base64 image 2..",
+      "..base64 image 3.."
     ],
-    "externalImageSetVerificationResult": {
-      "description": "Could Not Determine Match"
-    }
+    "externalImageSetVerificationResult": "CouldNotDetermineMatch"
   }
 }
