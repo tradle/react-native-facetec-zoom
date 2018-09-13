@@ -86,6 +86,11 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void getVersion(final Promise promise) {
+    promise.resolve(ZoomSDK.version());
+  }
+
+  @ReactMethod
   public void initialize(final ReadableMap opts, final Promise promise) {
     Log.d(TAG, "initializing");
     final String appToken = opts.getString("appToken");
