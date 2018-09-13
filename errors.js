@@ -36,6 +36,13 @@ export const SDKStatus = {
 }
 
 export const Verification = {
+  // from wrapper
+
+  NeverInitialized: 'NeverInitialized',
+
+  VerifyPending: 'VerifyPending',
+
+  // from SDK
 
   /**
    The user was successfully processed.

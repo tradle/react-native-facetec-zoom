@@ -40,6 +40,6 @@ ZoomAuth.initialize = opts => RNReactNativeZoomSdk.initialize({
   ...opts,
 })
 
-ZoomAuth.verify = () => RNReactNativeZoomSdk.verify()
+ZoomAuth.verify = (opts={}) => RNReactNativeZoomSdk.verify(opts)
 
 export default ZoomAuth

@@ -2,26 +2,31 @@
 
 this is a minimal wrapper around the [Zoom SDK](https://dev.zoomlogin.com/), that currently only runs the liveness detection check.
 
-because the ZoomAuthenticationHybrid.framework file is > 100MB, you'll need `git lfs` set up first:
+## Install
 
-```sh
-brew install git-lfs
-git lfs install
-```
-
-then:
-
-```sh
-# download form app.tradle.io
-curl https://s3.amazonaws.com/app.tradle.io/sdk/ZoomAuthenticationHybrid.framework-6.8.0.zip > ZoomAuthenticationHybrid.framework.zip
-unzip ZoomAuthenticationHybrid.framework.zip -d ios/
-rm ZoomAuthenticationHybrid.framework.zip
-
-# or download from zoom directly: https://dev.zoomlogin.com/zoomsdk/#/ios-guide
-# and put ZoomAuthenticationHybrid.framework in node_modules/react-native-facetec-zoom/ios/
-```
+### Common
 
 ```sh
 npm i -S tradle/react-native-facetec-zoom
 react-native link react-native-facetec-zoom
+```
+
+### iOS
+
+This library has been tested with version 6.8.0 of the SDK
+
+First, download `ZoomAuthenticationHybrid.framework` from one of these sources:
+
+- [Zoom SDK](https://dev.zoomlogin.com/zoomsdk/#/ios-guide)
+- [app.tradle.io](https://s3.amazonaws.com/app.tradle.io/sdk/ZoomAuthenticationHybrid.framework-6.8.0.zip)
+
+Unzip the file, locate `ZoomAuthenticationHybrid.framework` and place it in `node_modules/react-native-facetec-zoom/ios/`
+
+### Android
+
+in `android/setings.gradle` add these two lines in *addition* to the ones added by `react-native link`:
+
+```gradle
+include ':zoom-authentication-hybrid-6.8.0'
+project(':zoom-authentication-hybrid-6.8.0').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-facetec-zoom/android/zoom-authentication-hybrid-6.8.0')
 ```

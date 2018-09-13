@@ -17,7 +17,8 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
   var initialized = false
 
   // React Method
-  @objc func verify(_ resolve: @escaping RCTPromiseResolveBlock,
+  @objc func verify(_ options: Dictionary<String, Any>, // options not used at the moment
+                      resolve: @escaping RCTPromiseResolveBlock,
                       rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
     if self.verifyResolver != nil {
       let errorMsg = "one verify() at a time"
@@ -44,6 +45,17 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
 
       let root = UIApplication.shared.keyWindow!.rootViewController!;
       root.present(verificationVC, animated: true, completion: nil)
+    }
+  }
+
+  func getExternalImageSetVerificationResult(result: ZoomExternalImageSetVerificationResult) -> String {
+    switch (result) {
+      case .CouldNotDetermineMatch:
+        return "CouldNotDetermineMatch"
+      case .LowConfidenceMatch:
+        return "LowConfidenceMatch"
+      case .Match:
+        return "Match";
     }
   }
 
@@ -84,13 +96,16 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
 
     // CASE: user performed a ZoOm and passed the liveness check
     if result.status == .UserProcessedSuccessfully {
-      let externalImageSetVerificationResult:[String:Any] = [
-        "description": result.faceMetrics?.externalImageSetVerificationResult.description ?? ""
-      ]
+      let externalImageSetVerificationResult = result.faceMetrics?.externalImageSetVerificationResult
+      var externalImageSetVerificationResultStr = "Unsupported"
+      if externalImageSetVerificationResult != nil {
+        externalImageSetVerificationResultStr = getExternalImageSetVerificationResult(result: externalImageSetVerificationResult!)
+      }
 
       let faceMetrics:[String:Any] = [
+        "externalImageSetVerificationResult": externalImageSetVerificationResultStr,
         "auditTrail": result.faceMetrics!.auditTrail?.map { uiImageToBase64(image: $0) } ?? [],
-        "externalImageSetVerificationResult": externalImageSetVerificationResult,
+        "externalImageSetVerificationResult": externalImageSetVerificationResultStr,
         "livenessResult": result.faceMetrics!.livenessResult.description,
         "livenessScore": result.faceMetrics!.livenessScore
       ]
@@ -194,6 +209,4 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
       }
     )
   }
-
 }
-

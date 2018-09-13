@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
@@ -18,6 +19,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facetec.zoom.sdk.AuditTrailType;
 import com.facetec.zoom.sdk.ZoomCustomization;
 import com.facetec.zoom.sdk.ZoomExternalImageSetVerificationResult;
@@ -29,6 +31,9 @@ import com.facetec.zoom.sdk.ZoomVerificationActivity;
 import com.facetec.zoom.sdk.ZoomVerificationResult;
 import com.facetec.zoom.sdk.ZoomVerificationStatus;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,17 +42,44 @@ import java.util.ArrayList;
 //import static com.facetec.zoom.sdk.ZoomEnrollmentStatus.USER_WAS_ENROLLED;
 //import static com.facetec.zoom.sdk.ZoomEnrollmentStatus.USER_WAS_ENROLLED_WITH_FALLBACK_STRATEGY;
 
-public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule implements ActivityEventListener {
+public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
 
   private static final String TAG = "RNReactNativeZoomSdk";
+  private static final String VERIFY_PENDING = "VerifyPending";
+  private static final String NOT_INITIALIZED = "NotInitialized";
   private final ReactApplicationContext reactContext;
   private Promise verificationPromise;
+  private boolean initialized;
+
+  private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
+    @Override
+    public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+      super.onActivityResult(activity, requestCode, resultCode, data);
+      if (requestCode != ZoomSDK.REQUEST_CODE_VERIFICATION) return;
+      if (verificationPromise == null) return;
+
+      ZoomVerificationResult result = data.getParcelableExtra(ZoomSDK.EXTRA_VERIFY_RESULTS);
+      WritableMap resultObj = convertZoomVerificationResult(result);
+      verificationPromise.resolve(resultObj);
+      verificationPromise = null;
+
+//    AsyncTask.execute(new Runnable() {
+//      @Override
+//      public void run() {
+//        // preload sdk resources so the UI is snappy (optional)
+//        ZoomSDK.preload(reactContext.getApplicationContext());
+//      }
+//    });
+    }
+  };
 
 
   public RNReactNativeZoomSdkModule(ReactApplicationContext reactContext) {
     super(reactContext);
     this.reactContext = reactContext;
     this.verificationPromise = null;
+    this.initialized = false;
+    reactContext.addActivityEventListener(mActivityEventListener);
   }
 
   @Override
@@ -57,6 +89,7 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule imple
 
   @ReactMethod
   public void initialize(final ReadableMap opts, final Promise promise) {
+    Log.d(TAG, "initializing");
     final String appToken = opts.getString("appToken");
 
     final Context context = reactContext.getApplicationContext();
@@ -64,25 +97,6 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule imple
     AsyncTask.execute(new Runnable() {
       @Override
       public void run() {
-        ZoomCustomization zoomCustomization = new ZoomCustomization();
-        ZoomSDK.setCustomization(zoomCustomization);
-
-        ZoomSDK.initialize(getCurrentActivity(), appToken, new ZoomSDK.InitializeCallback() {
-          @Override
-          public void onCompletion(boolean successful) {
-            WritableMap map = Arguments.createMap();
-            map.putBoolean("success", successful);
-            if (!successful) {
-              map.putString("status", getSdkStatusString());
-            }
-
-            promise.resolve(map);
-          }
-        });
-
-        // preload sdk resources so the UI is snappy (optional)
-        ZoomSDK.preload(context);
-
         ZoomCustomization currentCustomization = new ZoomCustomization();
         ZoomSDK.setAuditTrailType(AuditTrailType.HEIGHT_640);
         currentCustomization.showZoomIntro = opts.getBoolean("showZoomIntro");
@@ -91,6 +105,24 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule imple
         currentCustomization.showSuccessScreen = opts.getBoolean("showSuccessScreen");
         currentCustomization.showFailureScreen = opts.getBoolean("showFailureScreen");
         ZoomSDK.setCustomization(currentCustomization);
+        ZoomSDK.initialize(getCurrentActivity(), appToken, new ZoomSDK.InitializeCallback() {
+          @Override
+          public void onCompletion(boolean successful) {
+            WritableMap map = Arguments.createMap();
+            map.putBoolean("success", successful);
+            if (successful) {
+              initialized = true;
+            } else {
+              map.putString("status", getSdkStatusString());
+            }
+
+            Log.d(TAG, String.format("initialized: %b", successful));
+            promise.resolve(map);
+          }
+        });
+
+        // preload sdk resources so the UI is snappy (optional)
+        ZoomSDK.preload(context);
       }
     });
   }
@@ -122,27 +154,36 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule imple
   // }
 
   @ReactMethod
-  private void verify(ReadableMap opts, final Promise promise) {
+  public void verify(ReadableMap opts, final Promise promise) {
+    if (!this.initialized) {
+      promise.reject(NOT_INITIALIZED);
+      return;
+    }
+
     if (this.verificationPromise != null) {
-
+      promise.reject(VERIFY_PENDING);
+      return;
     }
 
-    Intent authenticationIntent = new Intent(reactContext, ZoomVerificationActivity.class);
-    authenticationIntent.putExtra(ZoomSDK.EXTRA_RETRIEVE_ZOOM_BIOMETRIC, true);
-    getCurrentActivity().startActivityForResult(authenticationIntent, ZoomSDK.REQUEST_CODE_VERIFICATION);
+    verificationPromise = promise;
+    Activity activity = getCurrentActivity();
+    Intent verificationIntent = new Intent(activity.getBaseContext(), ZoomVerificationActivity.class);
+//    Intent authenticationIntent = new Intent(reactContext.getApplicationContext(), ZoomVerificationActivity.class);
+//    authenticationIntent.putExtra(ZoomSDK.EXTRA_RETRIEVE_ZOOM_BIOMETRIC, true);
+    activity.startActivityForResult(verificationIntent, ZoomSDK.REQUEST_CODE_VERIFICATION);
   }
 
-  @ReactMethod
-  public void handleVerificationSuccessResult(ZoomVerificationResult successResult) {
-    // retrieve the ZoOm facemap as byte[]
-    if (successResult.getFaceMetrics() != null) {
-      // this is the raw biometric data which can be uploaded, or may be
-      // base64 encoded in order to handle easier at the cost of processing and network usage
-      byte[] zoomFacemap = successResult.getFaceMetrics().getZoomFacemap();
-      // handle facemap
-    }
-  }
-
+//  @ReactMethod
+//  public void handleVerificationSuccessResult(ZoomVerificationResult successResult) {
+//    // retrieve the ZoOm facemap as byte[]
+//    if (successResult.getFaceMetrics() != null) {
+//      // this is the raw biometric data which can be uploaded, or may be
+//      // base64 encoded in order to handle easier at the cost of processing and network usage
+//      byte[] zoomFacemap = successResult.getFaceMetrics().getZoomFacemap();
+//      // handle facemap
+//    }
+//  }
+//
   // private void getUserEnrollmentStatus(JSONArray args, final CallbackContext callbackContext) throws JSONException {
   //     final Context context = this.cordova.getActivity().getApplicationContext();
   //     final String userId = args.getString(0);
@@ -166,26 +207,9 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule imple
   //     });
   // }
 
-  @Override
-  public void onNewIntent(Intent intent) { }
+//  @Override
+//  public void onNewIntent(Intent intent) { }
 
-  @Override
-  public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
-    if (requestCode != ZoomSDK.REQUEST_CODE_VERIFICATION) return;
-    if (this.verificationPromise == null) return;
-
-    ZoomVerificationResult result = data.getParcelableExtra(ZoomSDK.EXTRA_VERIFY_RESULTS);
-    WritableMap resultObj = convertZoomVerificationResult(result);
-    this.verificationPromise.resolve(resultObj);
-
-//    AsyncTask.execute(new Runnable() {
-//      @Override
-//      public void run() {
-//        // preload sdk resources so the UI is snappy (optional)
-//        ZoomSDK.preload(reactContext.getApplicationContext());
-//      }
-//    });
-  }
 
   @NonNull
   private String getSdkStatusString() {
@@ -330,7 +354,7 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule imple
     // Note: These string values should match exactly with the iOS implementation
     switch (result) {
       case COULD_NOT_DETERMINE_MATCH:
-        return "Undetermined";
+        return "CouldNotDetermineMatch";
       case LOW_CONFIDENCE_MATCH:
         return "LowConfidenceMatch";
       case MATCH:
