@@ -1,14 +1,21 @@
 {
   "name": "react-native-facetec-zoom",
   "version": "1.0.0",
-  "description": "",
+  "description": "unofficial react-native bridge for Facetec's Zoom SDK",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint --quiet --ignore-path .gitignore .",
     "precommit": "npm run lint"
   },
-  "keywords": [],
+  "keywords": [
+    "react-native",
+    "react-native-component",
+    "liveness-detection",
+    "zoom",
+    "facetec",
+    "tradle"
+  ],
   "author": "mvayngrib",
   "license": "MIT",
   "devDependencies": {
