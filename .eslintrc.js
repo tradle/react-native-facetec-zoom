@@ -1,15 +1,11 @@
 module.exports = {
     "env": {
-        "es6": true,
-        "node": true
+        "es6": true
     },
     "extends": "eslint:recommended",
     "parserOptions": {
         "sourceType": "module",
-        "ecmaVersion": 8,
-        "ecmaFeatures": {
-            "experimentalObjectRestSpread": true
-        }
+        "ecmaVersion": 9
     },
     "rules": {
         "accessor-pairs": "error",
