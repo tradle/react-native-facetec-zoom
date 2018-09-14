@@ -18,7 +18,7 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
 
   // React Method
   @objc func verify(_ options: Dictionary<String, Any>, // options not used at the moment
-                      resolve: @escaping RCTPromiseResolveBlock,
+                      resolver resolve: @escaping RCTPromiseResolveBlock,
                       rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
     self.verifyResolver = resolve
     self.verifyRejecter = reject
