@@ -46,6 +46,7 @@ const wrapNative = native => {
 
   return {
     initialize,
+    verify,
   }
 }
 
