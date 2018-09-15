@@ -91,7 +91,6 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
       let faceMetrics:[String:Any] = [
         "externalImageSetVerificationResult": externalImageSetVerificationResultStr,
         "auditTrail": result.faceMetrics!.auditTrail?.map { uiImageToBase64(image: $0) } ?? [],
-        "externalImageSetVerificationResult": externalImageSetVerificationResultStr,
         "livenessResult": result.faceMetrics!.livenessResult.description,
         "livenessScore": result.faceMetrics!.livenessScore
       ]
