@@ -1,6 +1,6 @@
 {
   "name": "react-native-facetec-zoom",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "unofficial react-native bridge for Facetec's Zoom SDK",
   "main": "index.js",
   "scripts": {
