@@ -18,18 +18,20 @@ react-native link react-native-facetec-zoom
 
 ### iOS
 
-This library has been tested with version 6.8.0 of the SDK
+This library has been tested with version 7.0.8 of the SDK
 
 First, download `ZoomAuthenticationHybrid.framework` from one of these sources:
 
 - [Zoom SDK](https://dev.zoomlogin.com/zoomsdk/#/ios-guide)
-- [app.tradle.io](https://s3.amazonaws.com/app.tradle.io/sdk/ZoomAuthenticationHybrid.framework-6.8.0.zip)
+- [app.tradle.io](https://s3.amazonaws.com/app.tradle.io/sdk/ZoomAuthenticationHybrid.framework-7.0.8.zip)
 
-Unzip the file, locate `ZoomAuthenticationHybrid.framework` and place it in `node_modules/react-native-facetec-zoom/ios/`
+Unzip the file, locate `ZoomAuthenticationHybrid.framework` and add it to your project (`Copy items if needed` should be checked)
+
+Add a Copy File phase to your Xcode project and have `ZoomAuthenticationHybrid.framework` copied to Destination `Frameworks`
 
 ### Android
 
-in `android/setings.gradle` add two lines *before* added by `react-native link`. Your final `settings.gradle` should look like this:
+in `android/settings.gradle` add two lines *before* added by `react-native link`. Your final `settings.gradle` should look like this:
 
 ```gradle
 ...
@@ -47,6 +49,8 @@ project(':react-native-facetec-zoom').projectDir = new File(rootProject.projectD
 ```js
 import Zoom from 'react-native-facetec-zoom'
 
+Zoom.preload() // as early as possible for best performance
+
 const verifyLiveness = async () => {
   // ensure zoom is initialized
   // this only needs to be done once
@@ -54,11 +58,11 @@ const verifyLiveness = async () => {
     appToken: '.. get this from https://dev.zoomlogin.com/ ..',
     // optional customization options
     // see defaults.js for the full list
-    showZoomIntro: false,
     showPreEnrollmentScreen: false,
     showUserLockedScreen: false,
-    showSuccessScreen: false,
-    showFailureScreen: false,
+    showRetryScreen: false,
+    enableLowLightMode: false,
+    centerFrame: true,
   })
 
   if (!success) {
@@ -69,7 +73,9 @@ const verifyLiveness = async () => {
 
   // launch Zoom's verification process
   const result = await Zoom.verify({
-    // no options at this point
+    // default to storing in ImageStoreManager to avoid sending base64 over bridge
+    returnBase64: false,
+    useOverlay: false,
   })
 
   // result looks like this:

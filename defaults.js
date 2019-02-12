@@ -1,9 +1,11 @@
 export const customization = {
-  showZoomIntro: false,
   showPreEnrollmentScreen: false,
   showUserLockedScreen: false,
-  showSuccessScreen: false,
-  showFailureScreen: false,
+  showRetryScreen: false,
+  enableLowLightMode: false,
+  centerFrame: true,
+  returnBase64: false,
+  useOverlay: false,
   // mainBackgroundColors: [UIColor]
   // mainForegroundColor: UIColor
   // buttonTextNormalColor: UIColor

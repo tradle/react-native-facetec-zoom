@@ -6,4 +6,7 @@
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTEventEmitter.h>
 #import <React/RCTViewManager.h>
+#import <React/RCTImageStoreManager.h>
+#import <React/RCTRootView.h>
+
 
