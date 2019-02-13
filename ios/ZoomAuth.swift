@@ -120,6 +120,10 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
       "livenessScore": face.devicePartialLivenessScore
     ]
 
+    if self.returnBase64 && face.zoomFacemap != nil {
+      faceMetrics["facemap"] = face.zoomFacemap!.base64EncodedString(options: [])
+    }
+
     resultJson["faceMetrics"] = faceMetrics
     if face.auditTrail == nil {
       self.sendResult(resultJson)
@@ -127,7 +131,6 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
     }
 
     var auditTrail:[String] = []
-    var count = face.auditTrail!.count
     if self.returnBase64 {
       for image in face.auditTrail! {
         auditTrail.append(uiImageToBase64(image))
@@ -139,14 +142,27 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
       return
     }
 
+    var togo = face.auditTrail!.count
+    if face.zoomFacemap != nil {
+      togo += 1
+      storeDataInImageStore(face.zoomFacemap!) { (tag) in
+        faceMetrics["facemap"] = tag
+        togo -= 1
+        if togo == 0 {
+          resultJson["faceMetrics"] = faceMetrics
+          self.sendResult(resultJson)
+        }
+      }
+    }
+
     for image in face.auditTrail! {
       uiImageToImageStoreKey(image) { (tag) in
         if (tag != nil) {
           auditTrail.append(tag!)
         }
 
-        count -= 1
-        if count == 0 {
+        togo -= 1
+        if togo == 0 {
           faceMetrics["auditTrail"] = auditTrail
           resultJson["faceMetrics"] = faceMetrics
           self.sendResult(resultJson)
@@ -193,6 +209,12 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
     let bridge = getRCTBridge()
     let imageStore: RCTImageStoreManager = bridge.imageStoreManager;
     imageStore.store(image, with: completionHandler)
+  }
+
+  func storeDataInImageStore (_ data: Data, completionHandler: @escaping (String?) -> Void) -> Void {
+    let bridge = getRCTBridge()
+    let imageStore: RCTImageStoreManager = bridge.imageStoreManager;
+    imageStore.storeImageData(data, with: completionHandler)
   }
 
   // React Method
