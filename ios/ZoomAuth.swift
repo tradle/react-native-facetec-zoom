@@ -244,6 +244,11 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
                         resolver resolve: @escaping RCTPromiseResolveBlock,
                         rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
 
+    if (options["facemapEncryptionKey"] != nil) {
+      let publicKey = options["facemapEncryptionKey"] as! String
+      Zoom.sdk.setFacemapEncryptionKey(publicKey: publicKey)
+    }
+
     Zoom.sdk.auditTrailType = .height640 // otherwise no auditTrail images
 
     // Create the customization object
