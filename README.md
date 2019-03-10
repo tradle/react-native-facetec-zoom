@@ -36,13 +36,27 @@ in `android/settings.gradle` add two lines *before* added by `react-native link`
 ```gradle
 ...
 // added by  you manually
-include ':zoom-authentication-hybrid-6.8.0'
-project(':zoom-authentication-hybrid-6.8.0').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-facetec-zoom/android/zoom-authentication-hybrid-6.8.0')
+include ':zoom-authentication-hybrid-7.0.8'
+project(':zoom-authentication-hybrid-7.0.8').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-facetec-zoom/android/zoom-authentication-hybrid-7.0.8')
 // added by react-native link
 include ':react-native-facetec-zoom'
 project(':react-native-facetec-zoom').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-facetec-zoom/android')
 ...
 ```
+
+In your project's build.gradle (android/build.gradle), add the maven block below:
+
+```gradle
+allprojects {
+  repositories {
+//  ...
+    maven {
+        url 'http://maven.facetec.com'
+    }
+}
+```
+
+This module depends on [react-native-image-store](https://github.com/tradle/react-native-image-store), so you'll need to npm install and react-native link that one too.
 
 ## Usage
 

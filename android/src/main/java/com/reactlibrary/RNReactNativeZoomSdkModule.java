@@ -4,14 +4,15 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -19,24 +20,22 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.BaseActivityEventListener;
-import com.facetec.zoom.sdk.AuditTrailType;
+import com.facetec.zoom.sdk.ZoomAuditTrailType;
 import com.facetec.zoom.sdk.ZoomCustomization;
+import com.facetec.zoom.sdk.ZoomDevicePartialLivenessResult;
 import com.facetec.zoom.sdk.ZoomExternalImageSetVerificationResult;
 import com.facetec.zoom.sdk.ZoomFaceBiometricMetrics;
-import com.facetec.zoom.sdk.ZoomLivenessResult;
 import com.facetec.zoom.sdk.ZoomSDK;
 import com.facetec.zoom.sdk.ZoomSDKStatus;
 import com.facetec.zoom.sdk.ZoomVerificationActivity;
 import com.facetec.zoom.sdk.ZoomVerificationResult;
 import com.facetec.zoom.sdk.ZoomVerificationStatus;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import io.tradle.reactimagestore.ImageStoreModule;
 //import static com.facetec.zoom.sdk.ZoomAuthenticationStatus.USER_WAS_AUTHENTICATED;
 //import static com.facetec.zoom.sdk.ZoomAuthenticationStatus.USER_WAS_AUTHENTICATED_WITH_FALLBACK_STRATEGY;
 //import static com.facetec.zoom.sdk.ZoomEnrollmentStatus.USER_WAS_ENROLLED;
@@ -48,6 +47,7 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
   private final ReactApplicationContext reactContext;
   private Promise verificationPromise;
   private boolean initialized;
+  private boolean returnBase64 = false;
 
   private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
     @Override
@@ -57,17 +57,18 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
       if (verificationPromise == null) return;
 
       ZoomVerificationResult result = data.getParcelableExtra(ZoomSDK.EXTRA_VERIFY_RESULTS);
-      WritableMap resultObj = convertZoomVerificationResult(result);
+      WritableMap resultObj;
+      try {
+        resultObj = convertZoomVerificationResult(result);
+      } catch (IOException i) {
+        resultObj = Arguments.createMap();
+        resultObj.putBoolean("success", false);
+        resultObj.putString("status", "ImageStoreError");
+        resultObj.putString("error", i.getMessage());
+      }
+
       verificationPromise.resolve(resultObj);
       verificationPromise = null;
-
-//    AsyncTask.execute(new Runnable() {
-//      @Override
-//      public void run() {
-//        // preload sdk resources so the UI is snappy (optional)
-//        ZoomSDK.preload(reactContext.getApplicationContext());
-//      }
-//    });
     }
   };
 
@@ -91,22 +92,28 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void preload() {
+    final Context context = reactContext.getApplicationContext();
+    // preload sdk resources so the UI is snappy (optional)
+    ZoomSDK.preload(context);
+  }
+
+  @ReactMethod
   public void initialize(final ReadableMap opts, final Promise promise) {
     Log.d(TAG, "initializing");
     final String appToken = opts.getString("appToken");
+    final String facemapEncryptionKey = opts.getString("facemapEncryptionKey");
 
-    final Context context = reactContext.getApplicationContext();
 
     AsyncTask.execute(new Runnable() {
       @Override
       public void run() {
         ZoomCustomization currentCustomization = new ZoomCustomization();
-        ZoomSDK.setAuditTrailType(AuditTrailType.HEIGHT_640);
-        currentCustomization.showZoomIntro = opts.getBoolean("showZoomIntro");
+        ZoomSDK.setAuditTrailType(ZoomAuditTrailType.HEIGHT_640);
         currentCustomization.showPreEnrollmentScreen = opts.getBoolean("showPreEnrollmentScreen");
         currentCustomization.showUserLockedScreen = opts.getBoolean("showUserLockedScreen");
-        currentCustomization.showSuccessScreen = opts.getBoolean("showSuccessScreen");
-        currentCustomization.showFailureScreen = opts.getBoolean("showFailureScreen");
+        currentCustomization.showRetryScreen= opts.getBoolean("showRetryScreen");
+        currentCustomization.enableLowLightMode = opts.getBoolean("enableLowLightMode");
         ZoomSDK.setCustomization(currentCustomization);
         ZoomSDK.initialize(getCurrentActivity(), appToken, new ZoomSDK.InitializeCallback() {
           @Override
@@ -124,8 +131,7 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
           }
         });
 
-        // preload sdk resources so the UI is snappy (optional)
-        ZoomSDK.preload(context);
+        ZoomSDK.setFacemapEncryptionKey(facemapEncryptionKey);
       }
     });
   }
@@ -159,10 +165,9 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void verify(ReadableMap opts, final Promise promise) {
     verificationPromise = promise;
+    returnBase64 = opts.getBoolean("returnBase64");
     Activity activity = getCurrentActivity();
     Intent verificationIntent = new Intent(activity.getBaseContext(), ZoomVerificationActivity.class);
-//    Intent authenticationIntent = new Intent(reactContext.getApplicationContext(), ZoomVerificationActivity.class);
-//    authenticationIntent.putExtra(ZoomSDK.EXTRA_RETRIEVE_ZOOM_BIOMETRIC, true);
     activity.startActivityForResult(verificationIntent, ZoomSDK.REQUEST_CODE_VERIFICATION);
   }
 
@@ -217,79 +222,76 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         return "InvalidToken";
       case VERSION_DEPRECATED:
         return "VersionDeprecated";
-      case DEVICE_INSECURE:
-        return "DeviceInsecure";
       case OFFLINE_SESSIONS_EXCEEDED:
         return "OfflineSessionsExceeded";
+      case DEVICE_IN_LANDSCAPE_MODE:
+        return "FailedBecauseOfLandscapeMode";
+      case DEVICE_IN_REVERSE_PORTRAIT_MODE:
+        return "FailedBecauseOfReversePortraitMode";
       case NETWORK_ISSUES:
-      default:
         return "NetworkIssues";
+      case DEVICE_LOCKED_OUT:
+        return "DeviceLockedOut";
+      case DEVICE_NOT_SUPPORTED:
+        return "DeviceNotSupported";
+      case LICENSE_EXPIRED_OR_INVALID:
+        return "LicenseExpiredOrInvalid";
+      default:
+        return "UnknownError";
     }
   }
 
-  // private static JSONObject convertZoomEnrollmentResult(ZoomEnrollmentResult result) throws JSONException {
-  //     JSONObject resultObj = new JSONObject();
-
-  //     ZoomEnrollmentStatus status = result.getStatus();
-  //     resultObj.put("successful", (status == USER_WAS_ENROLLED || status == USER_WAS_ENROLLED_WITH_FALLBACK_STRATEGY));
-  //     resultObj.put("status", convertZoomEnrollmentStatus(status));
-  //     resultObj.put("faceEnrollmentState", convertZoomAuthenticatorState(result.getFaceEnrollmentState()));
-  //     resultObj.put("livenessResult", convertZoomLivenessResult(result.getFaceMetrics().getLiveness()));
-
-  //     return resultObj;
-  // }
-
-  // private static JSONObject convertZoomAuthenticationResult(ZoomAuthenticationResult result) throws JSONException {
-  //     JSONObject resultObj = new JSONObject();
-
-  //     ZoomAuthenticationStatus status = result.getStatus();
-  //     resultObj.put("successful", (status == USER_WAS_AUTHENTICATED || status == USER_WAS_AUTHENTICATED_WITH_FALLBACK_STRATEGY));
-  //     resultObj.put("status", convertZoomAuthenticationStatus(status));
-  //     resultObj.put("faceAuthenticatorState", convertZoomAuthenticatorState(result.getFaceZoomAuthenticatorState()));
-  //     resultObj.put("livenessResult", convertZoomLivenessResult(result.getFaceMetrics().getLiveness()));
-  //     resultObj.put("countOfFaceFailuresSinceLastSuccess", result.getCountOfFaceFailuresSinceLastSuccess());
-  //     resultObj.put("consecutiveLockouts", result.getConsecutiveLockouts());
-
-  //     return resultObj;
-  // }
-
-  private static WritableMap convertZoomVerificationResult(ZoomVerificationResult result) {
+  private WritableMap convertZoomVerificationResult(ZoomVerificationResult result) throws IOException {
     WritableMap resultObj = Arguments.createMap();
-    WritableMap externalImageSetVerificationResultObj = Arguments.createMap();
     WritableMap faceMetricsObj = Arguments.createMap();
 
     ZoomFaceBiometricMetrics faceMetrics = result.getFaceMetrics();
-    ArrayList<Bitmap> auditTrail = faceMetrics.getAuditTrail();
-    WritableArray auditTrailBase64 = Arguments.createArray();
-    for (Bitmap image: auditTrail) {
-      auditTrailBase64.pushString(bitmapToBase64(image, 90));
-    }
-
-    ZoomExternalImageSetVerificationResult externalImageSetVerificationResult = faceMetrics.getExternalImageSetVerificationResult();
-
-    faceMetricsObj.putString("externalImageSetVerificationResult", convertExternalImageSetVerificationResult(externalImageSetVerificationResult));
-    faceMetricsObj.putArray("auditTrail", auditTrailBase64);
-    faceMetricsObj.putString("livenessResult", convertZoomLivenessResult(faceMetrics.getLiveness()));
-    faceMetricsObj.putDouble("livenessScore", faceMetrics.getLivenessScore());
+    faceMetricsObj.putString("livenessResult", convertZoomLivenessResult(faceMetrics.getDevicePartialLiveness()));
+    faceMetricsObj.putDouble("livenessScore", faceMetrics.getDevicePartialLivenessScore());
 
     String status = convertZoomVerificationStatus(result.getStatus());
     resultObj.putString("status", status);
     resultObj.putInt("countOfZoomSessionsPerformed", result.getCountOfZoomSessionsPerformed());
-    resultObj.putMap("faceMetrics", faceMetricsObj);
     resultObj.putString("sessionId", result.getSessionId());
 
-//    resultObj.put("successful", (status == USER_WAS_AUTHENTICATED || status == USER_WAS_AUTHENTICATED_WITH_FALLBACK_STRATEGY));
-//    resultObj.put("status", convertZoomAuthenticationStatus(status));
-//    resultObj.put("faceAuthenticatorState", convertZoomAuthenticatorState(result.getFaceZoomAuthenticatorState()));
-//    resultObj.put("livenessResult", convertZoomLivenessResult(result.getFaceMetrics().getLiveness()));
-//    resultObj.put("countOfFaceFailuresSinceLastSuccess", result.getCountOfFaceFailuresSinceLastSuccess());
-//    resultObj.put("consecutiveLockouts", result.getConsecutiveLockouts());
+    ArrayList<Bitmap> auditTrail = faceMetrics.getAuditTrail();
+    byte[] facemap = faceMetrics.getZoomFacemap();
+    if (returnBase64) {
+      WritableArray auditTrailBase64 = Arguments.createArray();
+      for (Bitmap image: auditTrail) {
+        auditTrailBase64.pushString(bitmapToBase64(image, 90));
+      }
 
+      faceMetricsObj.putArray("auditTrail", auditTrailBase64);
+      faceMetricsObj.putString("facemap", bytesToBase64(facemap));
+      resultObj.putMap("faceMetrics", faceMetricsObj);
+      return resultObj;
+    }
+
+    WritableArray auditTrailTags = Arguments.createArray();
+    for (Bitmap image: auditTrail) {
+      Uri imageUri = ImageStoreModule.storeImageBitmap(this.reactContext, image, "image/png");
+      auditTrailTags.pushString(imageUri.toString());
+    }
+
+    faceMetricsObj.putArray("auditTrail", auditTrailTags);
+    faceMetricsObj.putString("facemap", getImageTagForBytes(facemap));
+
+
+    resultObj.putMap("faceMetrics", faceMetricsObj);
     return resultObj;
   }
 
+  private String getImageTagForBytes(byte[] bytes) throws IOException {
+    return ImageStoreModule.storeImageBytes(this.reactContext, bytes).toString();
+  }
+
   private static String bitmapToBase64(Bitmap bitmap, int quality) {
-    return Base64.encodeToString(toJpeg(bitmap, quality), Base64.NO_WRAP);
+    return bytesToBase64(toJpeg(bitmap, quality));
+  }
+
+  private static String bytesToBase64(byte[] bytes) {
+    return Base64.encodeToString(bytes, Base64.NO_WRAP);
   }
 
   private static byte[] toJpeg(Bitmap bitmap, int quality) throws OutOfMemoryError {
@@ -357,92 +359,13 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
     }
   }
 
-  // private static String convertZoomEnrollmentStatus(ZoomEnrollmentStatus status) {
-  //     // Note: These string values should match exactly with the iOS implementation
-  //     switch (status) {
-  //         case APP_TOKEN_NOT_VALID:
-  //             return "InvalidToken";
-  //         case USER_WAS_ENROLLED:
-  //         case USER_WAS_ENROLLED_WITH_FALLBACK_STRATEGY:
-  //             return "Enrolled";
-  //         case USER_CANCELLED:
-  //             return "UserCancelled";
-  //         case ENROLLMENT_TIMED_OUT:
-  //             return "Timeout";
-  //         case FAILED_DUE_TO_CAMERA_ERROR:
-  //             return "CameraError";
-  //         case FAILED_DUE_TO_INTERNAL_ERROR:
-  //             return "InternalError";
-  //         case FAILED_DUE_TO_OS_CONTEXT_SWITCH:
-  //             return "OSContextSwitch";
-  //         case WIFI_NOT_ON_IN_DEV_MODE:
-  //             return "WifiNotOnInDevMode";
-  //         case NETWORKING_MISSING_IN_DEV_MODE:
-  //             return "NoConnectionInDevMode";
-  //         case CAMERA_PERMISSION_DENIED:
-  //             return "CameraPermissionDenied";
-  //         case USER_NOT_ENROLLED:
-  //         case FAILED_BECAUSE_USER_COULD_NOT_VALIDATE_FINGERPRINT:
-  //         default:
-  //             return "NotEnrolled";
-  //     }
-  // }
-
-  // private static String convertZoomAuthenticationStatus(ZoomAuthenticationStatus status) {
-  //     // Note: These string values should match exactly with the iOS implementation
-  //     switch (status) {
-  //         case APP_TOKEN_NOT_VALID:
-  //             return "AppTokenNotValid";
-  //         case USER_WAS_AUTHENTICATED:
-  //         case USER_WAS_AUTHENTICATED_WITH_FALLBACK_STRATEGY:
-  //             return "Authenticated";
-  //         case AUTHENTICATION_TIMED_OUT:
-  //             return "Timeout";
-  //         case USER_FAILED_AUTHENTICATION:
-  //             return "FailedAuthentication";
-  //         case WIFI_NOT_ON_IN_DEV_MODE:
-  //             return "WifiNotOnInDevMode";
-  //         case NETWORKING_MISSING_IN_DEV_MODE:
-  //             return "NoConnectionInDevMode";
-  //         case CAMERA_PERMISSIONS_DENIED:
-  //             return "CameraPermissionDenied";
-  //         case USER_MUST_ENROLL:
-  //             return "UserMustEnroll";
-  //         case USER_FAILED_AUTHENTICATION_AND_WAS_DELETED:
-  //             return "FailedAndWasDeleted";
-  //         case SESSION_FAILED_DUE_TO_OS_CONTEXT_SWITCH:
-  //             return "OSContextSwitch";
-  //         case FAILED_DUE_TO_CAMERA_ERROR:
-  //             return "CameraError";
-  //         case FAILED_DUE_TO_INTERNAL_ERROR:
-  //             return "InternalError";
-  //         case USER_CANCELLED:
-  //         default:
-  //             return "UserCancelled";
-  //     }
-  // }
-
-  // private static String convertZoomAuthenticatorState(ZoomAuthenticatorState state) {
-  //     switch (state) {
-  //         case COMPLETED:
-  //             return "Completed";
-  //         case FAILED:
-  //             return "Failed";
-  //         case CANCELLED:
-  //             return "Cancelled";
-  //         case UNUSED:
-  //         default:
-  //             return "Unused";
-  //     }
-  // }
-
-  private static String convertZoomLivenessResult(ZoomLivenessResult result) {
+  private static String convertZoomLivenessResult(ZoomDevicePartialLivenessResult result) {
     switch (result) {
-      case ALIVE:
-        return "Alive";
+      case PARTIAL_LIVENESS_SUCCESS:
+        return "LowConfidenceMatch";
       case LIVENESS_UNDETERMINED:
       default:
-        return "Undetermined";
+        return "CouldNotDetermineMatch";
     }
   }
 }
