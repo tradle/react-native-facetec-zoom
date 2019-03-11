@@ -93,9 +93,8 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void preload() {
-    final Context context = reactContext.getApplicationContext();
     // preload sdk resources so the UI is snappy (optional)
-    ZoomSDK.preload(context);
+    ZoomSDK.preload(getCurrentActivity());
   }
 
   @ReactMethod
