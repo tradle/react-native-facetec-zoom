@@ -201,7 +201,7 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
   }
 
   func uiImageToBase64 (_ image: UIImage) -> String {
-    let imageData = UIImageJPEGRepresentation(image, 0.9)! as NSData;
+    let imageData = image.jpegData(compressionQuality: 0.9)! as NSData;
     return imageData.base64EncodedString(options: [])
   }
 
