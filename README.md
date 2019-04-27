@@ -31,29 +31,27 @@ Add a Copy File phase to your Xcode project and have `ZoomAuthenticationHybrid.f
 
 ### Android
 
-in `android/settings.gradle` add two lines *before* added by `react-native link`. Your final `settings.gradle` should look like this:
-
-```gradle
-...
-// added by  you manually
-include ':zoom-authentication-hybrid-7.0.8'
-project(':zoom-authentication-hybrid-7.0.8').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-facetec-zoom/android/zoom-authentication-hybrid-7.0.8')
-// added by react-native link
-include ':react-native-facetec-zoom'
-project(':react-native-facetec-zoom').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-facetec-zoom/android')
-...
-```
-
 In your project's build.gradle (android/build.gradle), add the maven block below:
 
 ```gradle
 allprojects {
   repositories {
-//  ...
+    //  ...
     maven {
         url 'http://maven.facetec.com'
     }
 }
+
+If you want to override the default version of the Zoom SDK, add:
+
+```gradle
+ext {
+  // ...
+  zoomSdkVersion = '7.0.11' // <--- whichever version you want to use
+  // ...
+}
+```
+
 ```
 
 This module depends on [react-native-image-store](https://github.com/tradle/react-native-image-store), so you'll need to npm install and react-native link that one too.
