@@ -22,6 +22,7 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facetec.zoom.sdk.ZoomAuditTrailType;
 import com.facetec.zoom.sdk.ZoomCustomization;
+import com.facetec.zoom.sdk.ZoomFrameCustomization;
 import com.facetec.zoom.sdk.ZoomDevicePartialLivenessResult;
 import com.facetec.zoom.sdk.ZoomExternalImageSetVerificationResult;
 import com.facetec.zoom.sdk.ZoomFaceBiometricMetrics;
@@ -113,6 +114,12 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         currentCustomization.showUserLockedScreen = opts.getBoolean("showUserLockedScreen");
         currentCustomization.showRetryScreen= opts.getBoolean("showRetryScreen");
         currentCustomization.enableLowLightMode = opts.getBoolean("enableLowLightMode");
+
+        ZoomFrameCustomization frameCustomization = new ZoomFrameCustomization();
+        frameCustomization.topMargin = opts.getInt("topMargin");
+        frameCustomization.sizeRatio = (float)opts.getDouble("sizeRatio");
+        currentCustomization.setFrameCustomization(frameCustomization);
+
         ZoomSDK.setCustomization(currentCustomization);
         ZoomSDK.initialize(getCurrentActivity(), appToken, new ZoomSDK.InitializeCallback() {
           @Override
@@ -255,6 +262,8 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
 
     ArrayList<Bitmap> auditTrail = faceMetrics.getAuditTrail();
     byte[] facemap = faceMetrics.getZoomFacemap();
+    if (facemap == null  ||  facemap.length == 0)
+      return resultObj;
     if (returnBase64) {
       WritableArray auditTrailBase64 = Arguments.createArray();
       for (Bitmap image: auditTrail) {
