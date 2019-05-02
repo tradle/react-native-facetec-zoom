@@ -22,7 +22,7 @@ This library has been tested with version 7.0.15 of the SDK
 
 First, download `ZoomAuthenticationHybrid.framework` from one of these sources:
 
-- [Zoom SDK](https://dev.zoomlogin.com/zoomsdk/#/ios-guide)
+- [Zoom SDK](https://dev.zoomlogin.com/zoomsdk/#/downloads)
 - [app.tradle.io](https://s3.amazonaws.com/app.tradle.io/sdk/ZoomAuthenticationHybrid.framework-7.0.15.zip)
 
 Unzip the file, locate `ZoomAuthenticationHybrid.framework` and add it to your project (`Copy items if needed` should be checked)
