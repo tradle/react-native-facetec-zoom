@@ -18,12 +18,12 @@ react-native link react-native-facetec-zoom
 
 ### iOS
 
-This library has been tested with version 7.0.8 of the SDK
+This library has been tested with version 7.0.15 of the SDK
 
 First, download `ZoomAuthenticationHybrid.framework` from one of these sources:
 
 - [Zoom SDK](https://dev.zoomlogin.com/zoomsdk/#/ios-guide)
-- [app.tradle.io](https://s3.amazonaws.com/app.tradle.io/sdk/ZoomAuthenticationHybrid.framework-7.0.8.zip)
+- [app.tradle.io](https://s3.amazonaws.com/app.tradle.io/sdk/ZoomAuthenticationHybrid.framework-7.0.15.zip)
 
 Unzip the file, locate `ZoomAuthenticationHybrid.framework` and add it to your project (`Copy items if needed` should be checked)
 
@@ -81,7 +81,7 @@ const verifyLiveness = async () => {
     // see constants.js SDKStatus for explanations of various
     // reasons why initialize might not have gone through
     throw new Error(`failed to init. SDK status: ${status}`)
-  }  
+  }
 
   // launch Zoom's verification process
   const result = await Zoom.verify({
