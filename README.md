@@ -25,9 +25,22 @@ First, download `ZoomAuthenticationHybrid.framework` from one of these sources:
 - [Zoom SDK](https://dev.zoomlogin.com/zoomsdk/#/downloads)
 - [app.tradle.io](https://s3.amazonaws.com/app.tradle.io/sdk/ZoomAuthentication-ios-7.0.15.zip)
 
-Unzip the file, locate `ZoomAuthenticationHybrid.framework` and add it to your project (`Copy items if needed` should be checked)
+Unzip the file, locate `ZoomAuthenticationHybrid.framework`, copy it to your `ios/` directory, and drag it to your project in XCode (Check the `Copy items if needed` option when asked)
 
 Add a Copy File phase to your Xcode project and have `ZoomAuthenticationHybrid.framework` copied to Destination `Frameworks`
+
+Add a Run Script phase to your Xcode project with the following contents:
+```sh
+bash "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/ZoomAuthenticationHybrid.framework/strip-unused-architectures-from-target.sh"
+```
+
+If you have an Objective-C project, add a blank Swift file to your project (File -> New -> Swift File), with a bridging header (it will prompt you to auto-create one).
+
+add `NSCameraUsageDescription` to your Info.plist, e.g.:
+```xml
+<key>NSCameraUsageDescription</key>
+<string>verify liveness with Zoom</string>
+```
 
 ### Android
 
@@ -66,6 +79,7 @@ Zoom.preload() // as early as possible for best performance
 const verifyLiveness = async () => {
   // ensure zoom is initialized
   // this only needs to be done once
+  // see `initialize` in ./defaults.js for a list of options
   const { success, status } = await Zoom.initialize({
     appToken: '.. get this from https://dev.zoomlogin.com/ ..',
     // optional customization options
@@ -84,6 +98,7 @@ const verifyLiveness = async () => {
   }
 
   // launch Zoom's verification process
+  // see `verify` in ./defaults.js for a list of options
   const result = await Zoom.verify({
     // default to storing in ImageStoreManager to avoid sending base64 over bridge
     returnBase64: false,

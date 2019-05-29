@@ -27,4 +27,9 @@ RCT_EXTERN_METHOD(verify:(NSDictionary*) options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
++ (BOOL)requiresMainQueueSetup
+{
+  return YES;
+}
+
 @end

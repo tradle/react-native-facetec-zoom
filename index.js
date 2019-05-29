@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native'
 import { SDKStatus, VerificationStatus } from './constants'
-import { customization } from './defaults'
+import * as defaults from './defaults'
 import { VerificationPendingError, NotInitializedError } from './errors'
 
 export const status = {
@@ -16,7 +16,7 @@ const wrapNative = native => {
     initialized = false
 
     const result = await native.initialize({
-      ...customization,
+      ...defaults.initialize,
       ...opts,
     })
 
@@ -25,7 +25,7 @@ const wrapNative = native => {
   }
 
   const getVersion = () => native.getVersion()
-  const verify = async (opts={}) => {
+  const verify = async (opts = {}) => {
     if (!initialized) {
       throw new NotInitializedError('initialize me first!')
     }
@@ -36,7 +36,7 @@ const wrapNative = native => {
 
     try {
       return await native.verify({
-        ...customization,
+        ...defaults.verify,
         ...opts,
       })
     } finally {
@@ -48,6 +48,7 @@ const wrapNative = native => {
     preload: native.preload,
     initialize,
     verify,
+    getVersion,
   }
 }
 
