@@ -7,15 +7,16 @@
 //
 
 import UIKit
-import ZoomAuthenticationHybrid
+import ZoomAuthentication
 
 @objc(ZoomAuth)
-class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
+class ZoomAuth:  RCTViewManager, ProcessingDelegate {
 
   var verifyResolver: RCTPromiseResolveBlock? = nil
   var verifyRejecter: RCTPromiseRejectBlock? = nil
   var returnBase64: Bool = false
   var initialized = false
+  var licenseKey: String!
 
   func getRCTBridge() -> RCTBridge
   {
@@ -31,121 +32,62 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
     self.verifyRejecter = reject
     self.returnBase64 = (options["returnBase64"] as? Bool)!
     DispatchQueue.main.async {
-      let verificationVC = Zoom.sdk.createVerificationVC(
-        delegate: self
-      )
-
-      if (options["useOverlay"] as? Bool)! {
-        verificationVC.modalPresentationStyle = .overCurrentContext
-      }
-
-      let root = UIApplication.shared.keyWindow!.rootViewController!;
-      root.present(verificationVC, animated: true, completion: nil)
+      let root = UIApplication.shared.keyWindow!.rootViewController!
+      var optionsWithKey = options
+      optionsWithKey["licenseKey"] = self.licenseKey
+      let _ = LivenessCheckProcessor(delegate: self, fromVC: root, options: optionsWithKey)
     }
   }
 
-  func getLiveness(result: ZoomDevicePartialLivenessResult) -> String {
-    switch (result) {
-      case .livenessUndetermined:
-        return "CouldNotDetermineMatch"
-      case .partialLivenessSuccess:
-        return "LowConfidenceMatch"
-    }
-  }
-
-  // surely there's an easier way...
-  func getVerificationResultStatus(_ result: ZoomVerificationResult) -> String {
-    switch(result.status) {
-      case .userProcessedSuccessfully:
-        return "UserProcessedSuccessfully"
-      case .failedBecauseAppTokenNotValid:
-        return "FailedBecauseAppTokenNotValid"
-      case .userNotProcessed:
-        return "UserNotProcessed"
-      case .failedBecauseUserCancelled:
-        return "FailedBecauseUserCancelled"
-      case .failedBecauseCameraPermissionDenied:
-        return "FailedBecauseCameraPermissionDeniedByUser"
-      case .failedBecauseOfOSContextSwitch:
-        return "FailedBecauseOfOSContextSwitch"
-      case .failedBecauseOfTimeout:
-        return "FailedBecauseOfTimeout"
-      case .failedBecauseOfLowMemory:
-        return "FailedBecauseOfLowMemory"
-      case .failedBecauseNoConnectionInDevMode:
-        return "FailedBecauseNoConnectionInDevMode"
-      case .failedBecauseOfflineSessionsExceeded:
-        return "FailedBecauseOfflineSessionsExceeded"
-      case .failedBecauseEncryptionKeyInvalid:
-        return "FailedBecauseEncryptionKeyInvalid"
-      case .failedBecauseOfLandscapeMode:
-        return "FailedBecauseOfLandscapeMode"
-      case .failedBecauseOfReversePortraitMode:
-        return "FailedBecauseOfReversePortraitMode"
-      case .unknownError:
-        return "UnknownError"
-    }
-  }
-
-  func onZoomVerificationResult(result: ZoomVerificationResult) {
-    print("\(result.status)")
-
-    let status = getVerificationResultStatus(result)
-    // CASE: user performed a ZoOm and passed the liveness check
-    if result.status != .userProcessedSuccessfully {
-      // handle other error
-      self.sendResult([
-        "status": status
-      ])
-
-      return
-    }
-
+  // Show the final result and transition back into the main interface.
+  func onProcessingComplete(isSuccess: Bool, zoomSessionResult: ZoomSessionResult?) {
+    let statusCode = zoomSessionResult?.status.rawValue ?? -1
     var resultJson:[String:Any] = [
-      "status": status,
-      "countOfZoomSessionsPerformed": result.countOfZoomSessionsPerformed,
-      "sessionId": result.sessionId,
-      //        "description": result.description
+      "isSuccess": isSuccess,
+      "status": statusCode
     ]
 
-    if result.faceMetrics == nil {
+    if (!isSuccess) {
       self.sendResult(resultJson)
       return
     }
 
-    let face = result.faceMetrics!
-    let liveness = getLiveness(result: face.devicePartialLivenessResult)
-    var faceMetrics: [String:Any] = [
-      "livenessResult": liveness,
-      "livenessScore": face.devicePartialLivenessScore
-    ]
+    resultJson["countOfZoomSessionsPerformed"] = zoomSessionResult?.countOfZoomSessionsPerformed ?? 1
+    resultJson["sessionId"] = zoomSessionResult?.sessionId ?? ""
 
-    if self.returnBase64 && face.zoomFacemap != nil {
-      faceMetrics["facemap"] = face.zoomFacemap!.base64EncodedString(options: [])
-    }
-
-    resultJson["faceMetrics"] = faceMetrics
-    if face.auditTrail == nil {
+    if zoomSessionResult?.faceMetrics == nil {
       self.sendResult(resultJson)
       return
     }
 
+    let face = zoomSessionResult?.faceMetrics
+    var faceMetrics: [String:Any] = [:]
+    if self.returnBase64 && face?.faceMapBase64 != nil {
+      faceMetrics["facemap"] = face!.faceMapBase64
+    }
+
+//    resultJson["faceMetrics"] = faceMetrics
+    if face?.auditTrail == nil {
+      self.sendResult(resultJson)
+      return
+    }
+
+    let auditTrailImages = face!.auditTrail!
     var auditTrail:[String] = []
     if self.returnBase64 {
-      for image in face.auditTrail! {
-        auditTrail.append(uiImageToBase64(image))
+      if let auditTrailBase64 = face?.auditTrailCompressedBase64 {
+        faceMetrics["auditTrail"] = auditTrailBase64
       }
-
-      faceMetrics["auditTrail"] = auditTrail
+      
       resultJson["faceMetrics"] = faceMetrics
       self.sendResult(resultJson)
       return
     }
 
-    var togo = face.auditTrail!.count
-    if face.zoomFacemap != nil {
+    var togo = face?.auditTrailCompressedBase64?.count ?? 0
+    if let faceMap = face?.faceMap {
       togo += 1
-      storeDataInImageStore(face.zoomFacemap!) { (tag) in
+      storeDataInImageStore(faceMap) { (tag) in
         faceMetrics["facemap"] = tag
         togo -= 1
         if togo == 0 {
@@ -155,7 +97,7 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
       }
     }
 
-    for image in face.auditTrail! {
+    for image in auditTrailImages {
       uiImageToImageStoreKey(image) { (tag) in
         if (tag != nil) {
           auditTrail.append(tag!)
@@ -174,8 +116,13 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
 //    if let zoomFacemap = result.faceMetrics?.zoomFacemap {
 //      // handle ZoOm Facemap
 //    }
-  }
 
+  }
+  
+  // Show the final result and transition back into the main interface.
+  func onProcessingComplete(isSuccess: Bool, zoomSessionResult: ZoomSessionResult?, zoomIDScanResult: ZoomIDScanResult?) {
+  }
+  
   func sendResult(_ result: [String:Any]) -> Void {
     if (self.verifyResolver == nil) {
       return
@@ -243,37 +190,41 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
   @objc func initialize(_ options: Dictionary<String, Any>,
                         resolver resolve: @escaping RCTPromiseResolveBlock,
                         rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    self.licenseKey = options["licenseKey"] as? String
 
     if (options["facemapEncryptionKey"] != nil) {
       let publicKey = options["facemapEncryptionKey"] as! String
-      Zoom.sdk.setFacemapEncryptionKey(publicKey: publicKey)
+      Zoom.sdk.setFaceMapEncryptionKey(publicKey: publicKey);
     }
 
     Zoom.sdk.auditTrailType = .height640 // otherwise no auditTrail images
 
     // Create the customization object
     let currentCustomization: ZoomCustomization = ZoomCustomization()
-    currentCustomization.showPreEnrollmentScreen = (options["showPreEnrollmentScreen"] as? Bool)!
-    currentCustomization.showUserLockedScreen = (options["showUserLockedScreen"] as? Bool)!
-    currentCustomization.showRetryScreen = (options["showRetryScreen"] as? Bool)!
-    currentCustomization.enableLowLightMode = (options["enableLowLightMode"] as? Bool)!
+    // disable the "Your App Logo" section
+    currentCustomization.overlayCustomization.brandingImage = nil
+//    currentCustomization.overlayCustomization.blurEffectOpacity = 0
+//    currentCustomization.frameCustomization.blurEffectOpacity = 0
+//    currentCustomization.guidanceCustomization.showIntroScreenBrandingImage = false
 
     // Sample UI Customization: vertically center the ZoOm frame within the device's display
-    if (options["centerFrame"] as? Bool)! {
-      centerZoomFrameCustomization(currentZoomCustomization: currentCustomization)
-    }
+//    if (options["centerFrame"] as? Bool)! {
+//      centerZoomFrameCustomization(currentZoomCustomization: currentCustomization)
+//    } else if (options["topMargin"] != nil) {
+//      currentCustomization.frameCustomization.topMargin = options["topMargin"] as! Int32
+//    }
 
     // Apply the customization changes
     Zoom.sdk.setCustomization(currentCustomization)
     Zoom.sdk.initialize(
-      appToken: options["appToken"] as! String,
-      completion: { (appTokenValidated: Bool) -> Void in
+      licenseKeyIdentifier: options["licenseKey"] as! String,
+      completion: { (licenseKeyValidated: Bool) -> Void in
         //
-        // We want to ensure that App Token is valid before enabling verification
+        // We want to ensure that licenseKey is valid before enabling verification
         //
-        if appTokenValidated {
+        if licenseKeyValidated {
           self.initialized = true
-          let message = "AppToken validated successfully"
+          let message = "licenseKey validated successfully"
           print(message)
           resolve([
             "success": true
@@ -295,16 +246,16 @@ class ZoomAuth:  RCTViewManager, ZoomVerificationDelegate {
     )
   }
 
-  func centerZoomFrameCustomization(currentZoomCustomization: ZoomCustomization) {
-    let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
-    var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
-    // Detect iPhone X and iPad displays
-    if UIScreen.main.fixedCoordinateSpace.bounds.size.height >= 812 {
-      let screenWidth = UIScreen.main.fixedCoordinateSpace.bounds.size.width
-      frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
-    }
-    let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
-
-    currentZoomCustomization.frameCustomization.topMargin = Double(topMarginToCenterFrame)
-  }
+//  func centerZoomFrameCustomization(currentZoomCustomization: ZoomCustomization) {
+//    let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
+//    var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+//    // Detect iPhone X and iPad displays
+//    if UIScreen.main.fixedCoordinateSpace.bounds.size.height >= 812 {
+//      let screenWidth = UIScreen.main.fixedCoordinateSpace.bounds.size.width
+//      frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+//    }
+//    let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
+//
+//    currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
+//  }
 }

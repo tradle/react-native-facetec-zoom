@@ -8,6 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		85B6B0F92018C5EA00A70FDA /* ZoomAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85B6B0F82018C5EA00A70FDA /* ZoomAuth.swift */; };
+		AE9D6FBE23C165CF00B12F1C /* LivenessCheckProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9D6FBD23C165CF00B12F1C /* LivenessCheckProcessor.swift */; };
+		AE9D6FC023C1669C00B12F1C /* ProcesingDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9D6FBF23C1669C00B12F1C /* ProcesingDelegate.swift */; };
+		AE9D6FC323C16E0A00B12F1C /* ZoomGlobalState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9D6FC223C16E0A00B12F1C /* ZoomGlobalState.swift */; };
+		AE9D6FC523C16EA500B12F1C /* ThemeHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9D6FC423C16EA500B12F1C /* ThemeHelpers.swift */; };
+		AE9D6FC723C16EA600B12F1C /* NetworkingHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9D6FC623C16EA600B12F1C /* NetworkingHelpers.swift */; };
 		B3E7B58A1CC2AC0600A0062D /* RNReactNativeZoomSdk.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* RNReactNativeZoomSdk.m */; };
 /* End PBXBuildFile section */
 
@@ -26,8 +31,13 @@
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRNReactNativeZoomSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNReactNativeZoomSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		85B6B0F72018C5E900A70FDA /* RNReactNativeZoomSdk-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNReactNativeZoomSdk-Bridging-Header.h"; sourceTree = "<group>"; };
-		85B6B0F82018C5EA00A70FDA /* ZoomAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomAuth.swift; sourceTree = "<group>"; };
+		85B6B0F82018C5EA00A70FDA /* ZoomAuth.swift */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.swift; path = ZoomAuth.swift; sourceTree = "<group>"; tabWidth = 2; };
 		85B6B0FD2018C6A300A70FDA /* ZoomConfigurationForTestApplication.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ZoomConfigurationForTestApplication.xcconfig; sourceTree = "<group>"; };
+		AE9D6FBD23C165CF00B12F1C /* LivenessCheckProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LivenessCheckProcessor.swift; sourceTree = "<group>"; };
+		AE9D6FBF23C1669C00B12F1C /* ProcesingDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProcesingDelegate.swift; sourceTree = "<group>"; };
+		AE9D6FC223C16E0A00B12F1C /* ZoomGlobalState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZoomGlobalState.swift; sourceTree = "<group>"; };
+		AE9D6FC423C16EA500B12F1C /* ThemeHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ThemeHelpers.swift; path = Helpers/ThemeHelpers.swift; sourceTree = "<group>"; };
+		AE9D6FC623C16EA600B12F1C /* NetworkingHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NetworkingHelpers.swift; path = Helpers/NetworkingHelpers.swift; sourceTree = "<group>"; };
 		B3E7B5881CC2AC0600A0062D /* RNReactNativeZoomSdk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNReactNativeZoomSdk.h; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* RNReactNativeZoomSdk.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNReactNativeZoomSdk.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -55,9 +65,14 @@
 			isa = PBXGroup;
 			children = (
 				85B6B0F82018C5EA00A70FDA /* ZoomAuth.swift */,
+				AE9D6FC623C16EA600B12F1C /* NetworkingHelpers.swift */,
+				AE9D6FC423C16EA500B12F1C /* ThemeHelpers.swift */,
+				AE9D6FC223C16E0A00B12F1C /* ZoomGlobalState.swift */,
 				B3E7B5881CC2AC0600A0062D /* RNReactNativeZoomSdk.h */,
 				B3E7B5891CC2AC0600A0062D /* RNReactNativeZoomSdk.m */,
 				85B6B0FD2018C6A300A70FDA /* ZoomConfigurationForTestApplication.xcconfig */,
+				AE9D6FBD23C165CF00B12F1C /* LivenessCheckProcessor.swift */,
+				AE9D6FBF23C1669C00B12F1C /* ProcesingDelegate.swift */,
 				134814211AA4EA7D00B7C361 /* Products */,
 				85B6B0F72018C5E900A70FDA /* RNReactNativeZoomSdk-Bridging-Header.h */,
 				8581B7FA2020F24900985D29 /* Frameworks */,
@@ -129,8 +144,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE9D6FC723C16EA600B12F1C /* NetworkingHelpers.swift in Sources */,
+				AE9D6FC323C16E0A00B12F1C /* ZoomGlobalState.swift in Sources */,
+				AE9D6FC523C16EA500B12F1C /* ThemeHelpers.swift in Sources */,
 				85B6B0F92018C5EA00A70FDA /* ZoomAuth.swift in Sources */,
+				AE9D6FBE23C165CF00B12F1C /* LivenessCheckProcessor.swift in Sources */,
 				B3E7B58A1CC2AC0600A0062D /* RNReactNativeZoomSdk.m in Sources */,
+				AE9D6FC023C1669C00B12F1C /* ProcesingDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
