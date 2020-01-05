@@ -1,8 +1,8 @@
-import { NativeModules } from 'react-native'
+import { NativeModules, Platform } from 'react-native'
 import { SDKStatus, VerificationStatus } from './constants'
 import * as defaults from './defaults'
 import { VerificationPendingError, NotInitializedError } from './errors'
-import STATUS from './status'
+import statusToString from './status'
 
 export const status = {
   sdk: SDKStatus,
@@ -44,7 +44,7 @@ const wrapNative = native => {
         ...opts,
       })
 
-      result.status = STATUS[result.status]
+      result.status = statusToString(result.status)
       return result
     } finally {
       verifying = false

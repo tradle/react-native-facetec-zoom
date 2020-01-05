@@ -1,4 +1,4 @@
-export default [
+const statuses = [
   /**
    * completed but somethinf went wrong
    */
@@ -73,3 +73,5 @@ export default [
   */
   "UnknownInternalError"
 ]
+
+export default idx => statuses[idx]
