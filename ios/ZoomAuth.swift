@@ -43,7 +43,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
   func onProcessingComplete(isSuccess: Bool, zoomSessionResult: ZoomSessionResult?) {
     let statusCode = zoomSessionResult?.status.rawValue ?? -1
     var resultJson:[String:Any] = [
-      "isSuccess": isSuccess,
+      "success": isSuccess,
       "status": statusCode
     ]
 
