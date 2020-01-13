@@ -1,7 +1,8 @@
-import { NativeModules } from 'react-native'
+import { NativeModules, Platform } from 'react-native'
 import { SDKStatus, VerificationStatus } from './constants'
 import * as defaults from './defaults'
 import { VerificationPendingError, NotInitializedError } from './errors'
+import statusToString from './status'
 
 export const status = {
   sdk: SDKStatus,
@@ -18,6 +19,8 @@ const wrapNative = native => {
     const result = await native.initialize({
       ...defaults.initialize,
       ...opts,
+      // backwards compat
+      licenseKey: opts.licenseKey || opts.appToken
     })
 
     initialized = result.success
@@ -34,11 +37,15 @@ const wrapNative = native => {
       throw new VerificationPendingError('only one verification can be done at a time')
     }
 
+    let result
     try {
-      return await native.verify({
+      result = await native.verify({
         ...defaults.verify,
         ...opts,
       })
+
+      result.status = statusToString(result.status)
+      return result
     } finally {
       verifying = false
     }

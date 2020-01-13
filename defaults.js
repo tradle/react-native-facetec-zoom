@@ -1,9 +1,9 @@
 export const initialize = {
-  showPreEnrollmentScreen: false,
-  showUserLockedScreen: false,
-  showRetryScreen: false,
-  enableLowLightMode: false,
-  centerFrame: true,
+  // showPreEnrollmentScreen: false,
+  // showUserLockedScreen: false,
+  // showRetryScreen: false,
+  // enableLowLightMode: false,
+  // centerFrame: true,
   topMargin: 50,
   sizeRatio: 0.7,
   // copied from zoom sample app
@@ -16,7 +16,7 @@ mAiAKKvCdIqe17bltZ/rfEoL3gPKEfLXeN549LTj3XBp0hvG4loQ6eC1E1tRzSkf
 GJD4GIVvR+j12gXAaftj3ahfYxioBH7F7HQxzmWkwDyn3bqU54eaiB7f0ftsPpWM
 ceUaqkL2DZUvgN0efEJjnWy5y1/Gkq5GGWCROI9XG/SwXJ30BbVUehTbVcD70+ZF
 8QIDAQAB
------END PUBLIC KEY-----`,
+-----END PUBLIC KEY-----`
   // mainBackgroundColors: [UIColor]
   // mainForegroundColor: UIColor
   // buttonTextNormalColor: UIColor
@@ -39,9 +39,9 @@ ceUaqkL2DZUvgN0efEJjnWy5y1/Gkq5GGWCROI9XG/SwXJ30BbVUehTbVcD70+ZF
   // cancelButtonImage: UIImage?
   // cancelButtonLocation: ZoomAuthenticationHybrid.CancelButtonLocation
   // zoomInstructionsImages: ZoomAuthenticationHybrid.ZoomInstructions
-}
+};
 
 export const verify = {
   returnBase64: false,
-  useOverlay: false,
-}
+  useOverlay: false
+};

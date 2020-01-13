@@ -18,21 +18,16 @@ react-native link react-native-facetec-zoom
 
 ### iOS
 
-This library has been tested with version 7.0.15 of the SDK
+This library has been tested with version 8.1.0 of the SDK
 
-First, download `ZoomAuthenticationHybrid.framework` from one of these sources:
+First, download `ZoomAuthentication.framework` from one of these sources:
 
 - [Zoom SDK](https://dev.zoomlogin.com/zoomsdk/#/downloads)
-- [app.tradle.io](https://s3.amazonaws.com/app.tradle.io/sdk/ZoomAuthentication-ios-7.0.15.zip)
+- [app.tradle.io](https://s3.amazonaws.com/app.tradle.io/sdk/facetec-zoom/ios/8.1.0/ZoomAuthentication.framework.zip)
 
-Unzip the file, locate `ZoomAuthenticationHybrid.framework`, copy it to your `ios/` directory, and drag it to your project in XCode (Check the `Copy items if needed` option when asked)
+Unzip the file, locate `ZoomAuthentication.framework`, copy it to your `ios/` directory, and drag it to your project in XCode (Check the `Copy items if needed` option when asked)
 
-Add a Copy File phase to your Xcode project and have `ZoomAuthenticationHybrid.framework` copied to Destination `Frameworks`
-
-Add a Run Script phase to your Xcode project with the following contents:
-```sh
-bash "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/ZoomAuthenticationHybrid.framework/strip-unused-architectures-from-target.sh"
-```
+Add a Copy File phase to your Xcode project and have `ZoomAuthentication.framework` copied to Destination `Frameworks`
 
 If you have an Objective-C project, add a blank Swift file to your project (File -> New -> Swift File), with a bridging header (it will prompt you to auto-create one).
 
