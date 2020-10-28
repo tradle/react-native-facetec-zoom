@@ -74,7 +74,7 @@ class EnrollmentProcessor: NSObject, FaceTecFaceScanProcessorDelegate, URLSessio
         parameters["faceScan"] = sessionResult.faceScanBase64
         parameters["auditTrailImage"] = sessionResult.auditTrailCompressedBase64![0]
         parameters["lowQualityAuditTrailImage"] = sessionResult.lowQualityAuditTrailCompressedBase64![0]
-        parameters["externalDatabaseRefID"] = self.options["id"] as! String;
+        parameters["externalDatabaseRefID"] = self.options["id"] as! String
         
         //
         // Part 5:  Make the Networking Call to Your Servers.  Below is just example code, you are free to customize based on how your own API works.

@@ -79,7 +79,7 @@ class AuthenticateProcessor: NSObject, FaceTecFaceScanProcessorDelegate, URLSess
         parameters["faceScan"] = sessionResult.faceScanBase64
         parameters["auditTrailImage"] = sessionResult.auditTrailCompressedBase64![0]
         parameters["lowQualityAuditTrailImage"] = sessionResult.lowQualityAuditTrailCompressedBase64![0]
-        parameters["externalDatabaseRefID"] = options["id"] as? String
+        parameters["externalDatabaseRefID"] = self.options["id"] as! String
         
         //
         // Part 5:  Make the Networking Call to Your Servers.  Below is just example code, you are free to customize based on how your own API works.
@@ -129,12 +129,13 @@ class AuthenticateProcessor: NSObject, FaceTecFaceScanProcessorDelegate, URLSess
                 FaceTecCustomization.setOverrideResultScreenSuccessMessage("Authenticated")
                 faceScanResultCallback.onFaceScanResultSucceed()
             }
-            else if (didSucceed == false) {
-                // CASE:  In our Sample code, "success" being present and false means that the User Needs to Retry.
-                // Real Users will likely succeed on subsequent attempts after following on-screen guidance.
-                // Attackers/Fraudsters will continue to get rejected.
-                faceScanResultCallback.onFaceScanResultRetry()
-            }
+              // this includes the case where there was no match, so no point in retrying
+//            else if (didSucceed == false) {
+//                // CASE:  In our Sample code, "success" being present and false means that the User Needs to Retry.
+//                // Real Users will likely succeed on subsequent attempts after following on-screen guidance.
+//                // Attackers/Fraudsters will continue to get rejected.
+//                faceScanResultCallback.onFaceScanResultRetry()
+//            }
             else {
                 // CASE:  UNEXPECTED response from API.  Our Sample Code keys of a success boolean on the root of the JSON object --> You define your own API contracts with yourself and may choose to do something different here based on the error.
                 faceScanResultCallback.onFaceScanResultCancel()
