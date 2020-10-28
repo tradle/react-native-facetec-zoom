@@ -65,7 +65,9 @@ const wrapNative = native => {
 
   return {
     initialize,
-    verify: exec.bind(null, 'verify'),
+    verifyLiveness: exec.bind(null, 'verifyLiveness'),
+    // backwards compat
+    verify: exec.bind(null, 'verifyLiveness'),
     enroll,
     authenticate,
     getVersion,

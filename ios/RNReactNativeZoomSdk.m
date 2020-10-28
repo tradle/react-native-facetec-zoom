@@ -21,7 +21,7 @@ RCT_EXTERN_METHOD(initialize:(NSDictionary*) options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(verify:(NSDictionary*) options
+RCT_EXTERN_METHOD(verifyLiveness:(NSDictionary*) options
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
