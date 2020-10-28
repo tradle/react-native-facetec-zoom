@@ -1,12 +1,12 @@
 import UIKit
 import Foundation
-import ZoomAuthentication
+import FaceTecSDK
 
 class ZoomGlobalState {
-    // "https://api.zoomauth.com/api/v2/biometrics" for FaceTec Managed Testing API.
+    // "https://api.zoomauth.com/api/v3/biometrics" for FaceTec Managed Testing API.
     // "http://localhost:8080" if running ZoOm Server SDK (Dockerized) locally.
     // Otherwise, your webservice URL.
-    static let ZoomServerBaseURL = "https://api.zoomauth.com/api/v2/biometrics"
+    static let ZoomServerBaseURL = "https://api.facetec.com/api/v3/biometrics"
 
     // The customer-controlled public key used during encryption of FaceMap data.
     // Please see https://dev.zoomlogin.com/zoomsdk/#/licensing-and-encryption-keys for more information.
@@ -26,5 +26,5 @@ class ZoomGlobalState {
 //    static var isRandomUsernameEnrolled = false
     
     // this app can modify the customization to demonstrate different look/feel preferences for ZoOm
-    static var currentCustomization: ZoomCustomization = ZoomCustomization()
+    static var currentCustomization: FaceTecCustomization = FaceTecCustomization()
 }
